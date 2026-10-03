@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Verdad o Reto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Kufi+Arabic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fdf6ec; --rosa:#ffc8dd; --celeste:#bde0fe; --lila:#cdb4db;
+  --menta:#b9fbc0; --durazno:#ffd6a5; --amarillo:#fdffb6; --ink:#5b4b6b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'Press Start 2P',monospace; font-size:11px; line-height:1.9; image-rendering:pixelated;
+  background-image:linear-gradient(var(--ink) 1px,transparent 1px),linear-gradient(90deg,var(--ink) 1px,transparent 1px);
+  background-size:32px 32px; background-blend-mode:soft-light;
+}
+html[lang="ar"] body{font-family:'Noto Kufi Arabic',sans-serif;font-size:15px;line-height:2.1;font-weight:500}
+.wrap{max-width:640px;margin:0 auto;padding:64px 16px 32px;display:flex;flex-direction:column;gap:16px}
+.hidden{display:none!important}
+.langs{position:fixed;top:8px;inset-inline-end:8px;z-index:10;display:flex;gap:6px}
+.langs button{font:inherit;font-size:10px;color:var(--ink);background:#fff;border:3px solid var(--ink);padding:8px 10px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;min-width:44px;min-height:40px}
+.langs button[aria-pressed="true"]{background:var(--amarillo)}
+.langs button:active{transform:translate(3px,3px);box-shadow:none}
+.box{background:#fff;border:4px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:16px;display:flex;flex-direction:column;gap:12px;text-align:start}
+h1{font-size:clamp(16px,5vw,24px);line-height:1.5;text-align:center;margin:8px 0;text-shadow:3px 3px 0 var(--rosa),6px 6px 0 var(--celeste)}
+h2{font-size:12px;margin:0}
+html[lang="ar"] h1{font-size:clamp(24px,7vw,34px)} html[lang="ar"] h2{font-size:18px}
+.btn{font:inherit;color:var(--ink);border:4px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:14px;min-height:52px;cursor:pointer;background:var(--lila)}
+.btn:active{transform:translate(4px,4px);box-shadow:none}
+.btn.ok{background:var(--menta)} .btn.del{background:var(--rosa);min-height:40px;padding:6px 10px;font-size:10px}
+.btn:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.langs button:focus-visible{outline:3px dashed var(--ink);outline-offset:3px}
+input,textarea,select{font:inherit;font-size:14px;color:var(--ink);background:#fff;border:4px solid var(--ink);padding:12px;width:100%;min-height:48px}
+html[lang="ar"] input,html[lang="ar"] textarea,html[lang="ar"] select{font-size:17px}
+textarea{resize:vertical;min-height:80px}
+label{display:block}
+.msg{text-align:center;padding:8px;min-height:2em}
+.msg.err{background:var(--rosa);border:3px solid var(--ink)} .msg.good{background:var(--menta);border:3px solid var(--ink)}
+.item{display:flex;gap:10px;align-items:center;justify-content:space-between;border:3px solid var(--ink);padding:10px;background:var(--bg)}
+.item span.tx{flex:1;word-break:break-word;font-size:10px}
+html[lang="ar"] .item span.tx{font-size:15px}
+.flags{display:inline-flex;gap:4px;margin-inline-start:6px;vertical-align:middle}
+.flags i{font-style:normal;font-size:8px;border:2px solid var(--ink);padding:0 4px;background:var(--amarillo)}
+.group{display:flex;flex-direction:column;gap:10px}
+.group.verdad{border-inline-start:8px solid var(--celeste);padding-inline-start:10px}
+.group.reto{border-inline-start:8px solid var(--rosa);padding-inline-start:10px}
+.stkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.stkcard{border:3px solid var(--ink);background:var(--bg);padding:8px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.stkcard img{width:88px;height:88px;object-fit:contain;background:repeating-conic-gradient(#e9e2f2 0 25%,#fff 0 50%) 0 0/16px 16px;border:2px solid var(--ink)}
+.stkcard span{font-size:9px;word-break:break-word}
+#stkPrev{width:120px;height:120px;object-fit:contain;align-self:center;border:3px solid var(--ink);background:repeating-conic-gradient(#e9e2f2 0 25%,#fff 0 50%) 0 0/16px 16px}
+
+/* ===== Rediseño: pestañas, menú de botones y secciones ===== */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tab{font:inherit;color:var(--ink);background:#fff;border:4px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:16px 8px;min-height:56px;cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--amarillo);transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.menu{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.tile{font:inherit;color:var(--ink);background:var(--lila);border:4px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:18px 8px;min-height:120px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;word-break:break-word}
+.tile b{font-size:30px;line-height:1}
+.tile:nth-child(4n+2){background:var(--rosa)} .tile:nth-child(4n+3){background:var(--celeste)} .tile:nth-child(4n){background:var(--menta)}
+.tile:active{transform:translate(4px,4px);box-shadow:none}
+.tile.sm{min-height:76px;padding:10px 6px;gap:6px}
+.tile.sm small{font-size:9px;background:#fff;border:2px solid var(--ink);padding:0 6px}
+.tile[aria-pressed="true"]{outline:4px dashed var(--ink);outline-offset:3px}
+.tab:focus-visible,.tile:focus-visible{outline:3px dashed var(--ink);outline-offset:3px}
+.sec,.col{display:flex;flex-direction:column;gap:16px}.col{gap:12px}
+.btn.back{background:var(--celeste);min-height:44px;padding:8px 14px;align-self:flex-start}
+.rowf{display:flex;gap:8px}.rowf input{flex:1;min-width:0}.rowf .btn{white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="langs" role="group" aria-label="Language">
+  <button data-l="es">ES</button><button data-l="en">EN</button><button data-l="ar">AR</button>
+</div>
+<main class="wrap">
+  <h1 data-i="title"></h1>
+
+  <!-- Inicio de sesión -->
+  <section id="login" class="box">
+    <h2 data-i="login"></h2>
+    <input id="email" type="email" autocomplete="username" data-ph="email">
+    <input id="pass" type="password" autocomplete="current-password" data-ph="pass">
+    <button class="btn ok" id="bLogin" data-i="enter"></button>
+  </section>
+
+  <!-- Panel -->
+  <section id="panel" class="hidden" style="display:flex;flex-direction:column;gap:16px">
+    <nav class="tabs">
+      <button class="tab" data-tab="juegos" data-i="games"></button>
+      <button class="tab" data-tab="config" data-i="settings"></button>
+    </nav>
+    <div id="vJuegos" class="menu"><button class="tile" data-go="vor"><b>🎲</b><span data-i="tVor"></span></button></div>
+    <div id="vConfig" class="menu hidden"><button class="tile" data-go="stk"><b>🖼️</b><span data-i="tStk"></span></button><button class="tile" data-go="char"><b>👤</b><span data-i="tChar"></span></button></div>
+
+    <section id="sVor" class="sec hidden">
+      <button class="btn back" data-i="back"></button>
+      <div class="box">
+        <h2 data-i="newQ"></h2>
+        <label><span data-i="lEs"></span><textarea id="qEs"></textarea></label>
+        <label><span data-i="lEn"></span><textarea id="qEn" dir="ltr"></textarea></label>
+        <label><span>العربية</span><textarea id="qAr" dir="rtl" lang="ar"></textarea></label>
+        <button class="btn" id="bTr" data-i="trBtn">Traducir automáticamente</button>
+        <select id="qTipo"><option value="verdad" data-i="truth"></option><option value="reto" data-i="dare"></option></select>
+        <button class="btn ok" id="bAdd" data-i="add"></button>
+      </div>
+      <div class="box">
+        <h2 data-i="list"></h2>
+        <div class="group verdad"><h2 data-i="truths"></h2><div id="lV" class="group"></div></div>
+        <div class="group reto"><h2 data-i="dares"></h2><div id="lR" class="group"></div></div>
+      </div>
+    </section>
+
+    <section id="sStk" class="sec hidden">
+      <button class="btn back" data-i="back"></button>
+      <div class="box">
+        <h2 data-i="genTitle"></h2>
+        <div class="rowf"><input id="genName" maxlength="24" autocomplete="off" data-ph="genPh"><button class="btn ok" id="bAddGen" data-i="genAdd"></button></div>
+        <div id="gGrid" class="menu"></div>
+      </div>
+      <div class="box hidden" id="genPanel">
+        <h2 id="genHead"></h2>
+        <div id="upForm" class="col">
+          <div class="msg" data-i="stkHelp" style="min-height:0"></div>
+          <input id="stkFile" type="file" accept="image/png,image/jpeg">
+          <img id="stkPrev" class="hidden" alt="">
+          <input id="stkName" maxlength="20" autocomplete="off" data-ph="stkNamePh">
+          <button class="btn ok" id="bAddStk" data-i="stkAdd"></button>
+        </div>
+        <div id="lS" class="stkgrid"></div>
+        <button class="btn del" id="bDelGen" data-i="genDel"></button>
+      </div>
+    </section>
+
+    <section id="sChar" class="sec hidden">
+      <button class="btn back" data-i="back"></button>
+      <div class="box">
+        <h2 data-i="charTitle"></h2>
+        <div class="msg" data-i="charHelp" style="min-height:0"></div>
+        <input id="chFile" type="file" accept="image/png">
+        <img id="chPrev" class="hidden" alt="" style="width:120px;height:120px;object-fit:contain;align-self:center;border:3px solid var(--ink);background:repeating-conic-gradient(#e9e2f2 0 25%,#fff 0 50%) 0 0/16px 16px">
+        <input id="chName" maxlength="20" autocomplete="off" data-ph="stkNamePh">
+        <button class="btn ok" id="bAddCh" data-i="charAdd"></button>
+        <div id="lC" class="stkgrid"></div>
+      </div>
+    </section>
+
+    <button class="btn" id="bOut" data-i="logout"></button>
+  </section>
+
+  <div id="msg" class="msg"></div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+/* ===== Firebase (configuración tal cual) ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyDrtK1WFIwYNwY0gyiXl5o5RJ4b44Ekm7k",
+  authDomain: "verdadreto-6bb8d.firebaseapp.com",
+  projectId: "verdadreto-6bb8d",
+  storageBucket: "verdadreto-6bb8d.firebasestorage.app",
+  messagingSenderId: "918592609096",
+  appId: "1:918592609096:web:ee82aab620e3a360fc717d"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+/* ===== Traducciones ===== */
+const T = {
+  es:{stkTitle:"Stickers del chat",stkHelp:"Se usan en todas las salas. Formatos: PNG o JPG (se ajustan a 256 px).",stkNamePh:"Nombre (opcional)",stkAdd:"Subir sticker",stkAdded:"¡Sticker agregado!",stkDeleted:"Sticker borrado.",stkNeed:"Elige primero una imagen PNG o JPG.",stkType:"Solo se permiten imágenes PNG o JPG.",stkBig:"La imagen es demasiado grande incluso reducida.",stkEmpty:"Aún no hay stickers",title:"PANEL DE PREGUNTAS",login:"Iniciar sesión",email:"Correo",pass:"Contraseña",enter:"Entrar",
+    newQ:"Nueva pregunta",lEs:"Español (obligatorio)",lEn:"English (se traduce solo, editable)",truth:"Verdad",dare:"Reto",add:"Agregar",
+    list:"Preguntas actuales",truths:"Verdades",dares:"Retos",del:"Borrar",logout:"Cerrar sesión",empty:"Sin preguntas",
+    needEs:"Escribe la pregunta en español.",added:"¡Pregunta agregada!",deleted:"Pregunta borrada.",
+    errLogin:"Correo o contraseña incorrectos.",errNet:"Error de red. Revisa tu conexión.",errMany:"Demasiados intentos. Espera un momento.",
+    errPerm:"No tienes permiso para hacer esto.",errGen:"Ocurrió un error. Inténtalo de nuevo.",fill:"Completa correo y contraseña.",trBtn:"Traducir automáticamente",translating:"Traduciendo...",translated:"Traducción lista. Revísala antes de agregar.",transFail:"No se pudo traducir. Escribe la traducción a mano.",addedNoTr:"Agregada sin traducción automática (se verá en español)."},
+  en:{stkTitle:"Chat stickers",stkHelp:"Used in every room. Formats: PNG or JPG (resized to 256 px).",stkNamePh:"Name (optional)",stkAdd:"Upload sticker",stkAdded:"Sticker added!",stkDeleted:"Sticker deleted.",stkNeed:"Pick a PNG or JPG image first.",stkType:"Only PNG or JPG images are allowed.",stkBig:"The image is too large even after resizing.",stkEmpty:"No stickers yet",title:"QUESTIONS PANEL",login:"Log in",email:"Email",pass:"Password",enter:"Enter",
+    newQ:"New question",lEs:"Español (required)",lEn:"English (auto-translated, editable)",truth:"Truth",dare:"Dare",add:"Add",
+    list:"Current questions",truths:"Truths",dares:"Dares",del:"Delete",logout:"Log out",empty:"No questions",
+    needEs:"Write the question in Spanish.",added:"Question added!",deleted:"Question deleted.",
+    errLogin:"Wrong email or password.",errNet:"Network error. Check your connection.",errMany:"Too many attempts. Wait a moment.",
+    errPerm:"You do not have permission to do this.",errGen:"Something went wrong. Try again.",fill:"Enter email and password.",trBtn:"Translate automatically",translating:"Translating...",translated:"Translation ready. Review it before adding.",transFail:"Could not translate. Type the translation by hand.",addedNoTr:"Added without automatic translation (it will show in Spanish)."},
+  ar:{stkTitle:"ملصقات الدردشة",stkHelp:"تُستخدم في كل الغرف. الصيغ: PNG أو JPG (تُصغَّر إلى 256 بكسل).",stkNamePh:"الاسم (اختياري)",stkAdd:"رفع ملصق",stkAdded:"تمت إضافة الملصق!",stkDeleted:"تم حذف الملصق.",stkNeed:"اختر صورة PNG أو JPG أولاً.",stkType:"يُسمح فقط بصور PNG أو JPG.",stkBig:"الصورة كبيرة جداً حتى بعد التصغير.",stkEmpty:"لا توجد ملصقات بعد",title:"لوحة الأسئلة",login:"تسجيل الدخول",email:"البريد الإلكتروني",pass:"كلمة المرور",enter:"دخول",
+    newQ:"سؤال جديد",lEs:"الإسبانية (مطلوب)",lEn:"الإنجليزية (تُترجم تلقائياً، قابلة للتعديل)",truth:"حقيقة",dare:"جرأة",add:"إضافة",
+    list:"الأسئلة الحالية",truths:"حقائق",dares:"تحديات",del:"حذف",logout:"تسجيل الخروج",empty:"لا توجد أسئلة",
+    needEs:"اكتب السؤال بالإسبانية.",added:"تمت إضافة السؤال!",deleted:"تم حذف السؤال.",
+    errLogin:"البريد أو كلمة المرور غير صحيحة.",errNet:"خطأ في الشبكة. تحقق من اتصالك.",errMany:"محاولات كثيرة. انتظر قليلاً.",
+    errPerm:"ليست لديك صلاحية لهذا الإجراء.",errGen:"حدث خطأ. حاول مرة أخرى.",fill:"أدخل البريد وكلمة المرور.",trBtn:"ترجمة تلقائية",translating:"جارٍ الترجمة...",translated:"الترجمة جاهزة. راجعها قبل الإضافة.",transFail:"تعذرت الترجمة. اكتب الترجمة يدوياً.",addedNoTr:"تمت الإضافة بدون ترجمة تلقائية (ستظهر بالإسبانية)."}
+};
+Object.assign(T.es,{title:"PANEL ADMIN",games:"Juegos",settings:"Configuración",tVor:"Verdad o Reto",tStk:"Sticker",back:"← Atrás",genTitle:"Géneros de stickers",genPh:"Nuevo género (ej. Anime)",genAdd:"Crear género",genAdded:"¡Género creado!",genDeleted:"Género borrado.",genNeed:"Escribe el nombre del género.",genEmpty:"Crea tu primer género",genPick:"Elige primero un género.",genConfirm:"¿Borrar el género y todos sus stickers?",genDel:"Borrar género",noGen:"Sin género"});
+Object.assign(T.en,{title:"ADMIN PANEL",games:"Games",settings:"Settings",tVor:"Truth or Dare",tStk:"Sticker",back:"← Back",genTitle:"Sticker genres",genPh:"New genre (e.g. Anime)",genAdd:"Create genre",genAdded:"Genre created!",genDeleted:"Genre deleted.",genNeed:"Type the genre name.",genEmpty:"Create your first genre",genPick:"Pick a genre first.",genConfirm:"Delete the genre and all its stickers?",genDel:"Delete genre",noGen:"No genre"});
+Object.assign(T.ar,{title:"لوحة الإدارة",games:"الألعاب",settings:"الإعدادات",tVor:"حقيقة أو جرأة",tStk:"ملصق",back:"← رجوع",genTitle:"أنواع الملصقات",genPh:"نوع جديد (مثل أنمي)",genAdd:"إنشاء نوع",genAdded:"تم إنشاء النوع!",genDeleted:"تم حذف النوع.",genNeed:"اكتب اسم النوع.",genEmpty:"أنشئ أول نوع",genPick:"اختر نوعاً أولاً.",genConfirm:"حذف النوع وكل ملصقاته؟",genDel:"حذف النوع",noGen:"بدون نوع"});
+Object.assign(T.es,{tChar:"Personaje",charTitle:"Personajes del perfil",charHelp:"Sube el personaje en PNG (se ajusta a 256 px). Los jugadores lo eligen en su perfil.",charAdd:"Subir personaje",charAdded:"¡Personaje agregado!",charDeleted:"Personaje borrado.",charNeed:"Elige primero una imagen PNG.",charType:"Solo se permiten imágenes PNG.",charEmpty:"Aún no hay personajes"});
+Object.assign(T.en,{tChar:"Character",charTitle:"Profile characters",charHelp:"Upload the character as PNG (resized to 256 px). Players pick it in their profile.",charAdd:"Upload character",charAdded:"Character added!",charDeleted:"Character deleted.",charNeed:"Pick a PNG image first.",charType:"Only PNG images are allowed.",charEmpty:"No characters yet"});
+Object.assign(T.ar,{tChar:"شخصية",charTitle:"شخصيات الملف الشخصي",charHelp:"ارفع الشخصية بصيغة PNG (تُصغَّر إلى 256 بكسل). يختارها اللاعبون في ملفهم.",charAdd:"رفع شخصية",charAdded:"تمت إضافة الشخصية!",charDeleted:"تم حذف الشخصية.",charNeed:"اختر صورة PNG أولاً.",charType:"يُسمح فقط بصور PNG.",charEmpty:"لا توجد شخصيات بعد"});
+const $ = s => document.querySelector(s);
+const LANGS=["es","en","ar"];
+let lang="es", docs=[], msgKey=null, msgKind="";
+try{
+  const saved=localStorage.getItem("vor-lang"), nav=(navigator.language||"es").slice(0,2).toLowerCase();
+  lang=LANGS.includes(saved)?saved:(LANGS.includes(nav)?nav:"es");
+}catch(e){}
+const t=k=>(T[lang]&&T[lang][k])||T.es[k]||k;
+
+function setMsg(key,kind){ msgKey=key; msgKind=kind||""; const m=$("#msg"); m.textContent=key?t(key):""; m.className="msg "+msgKind; }
+function applyLang(){
+  document.documentElement.lang=lang; document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  document.querySelectorAll("[data-i]").forEach(e=>e.textContent=t(e.dataset.i));
+  document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=t(e.dataset.ph));
+  document.querySelectorAll(".langs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===lang));
+  if(msgKey) setMsg(msgKey,msgKind);
+  renderList(); renderStks(); renderChars();
+}
+document.querySelectorAll(".langs button").forEach(b=>b.onclick=()=>{
+  lang=b.dataset.l; try{localStorage.setItem("vor-lang",lang);}catch(e){} applyLang();
+});
+
+/* ===== Navegación: Juegos / Configuración ===== */
+let tab="juegos", sec=null;
+function nav(){
+  $("#vJuegos").classList.toggle("hidden",!(tab==="juegos"&&!sec));
+  $("#vConfig").classList.toggle("hidden",!(tab==="config"&&!sec));
+  $("#sVor").classList.toggle("hidden",sec!=="vor");
+  $("#sStk").classList.toggle("hidden",sec!=="stk");
+  $("#sChar").classList.toggle("hidden",sec!=="char");
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===tab));
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{ tab=b.dataset.tab; sec=null; nav(); });
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{ sec=b.dataset.go; nav(); });
+document.querySelectorAll(".back").forEach(b=>b.onclick=()=>{ sec=null; nav(); });
+
+/* ===== Autenticación ===== */
+$("#bLogin").onclick=async()=>{
+  const e=$("#email").value.trim(), p=$("#pass").value;
+  if(!e||!p){ setMsg("fill","err"); return; }
+  try{ await signInWithEmailAndPassword(auth,e,p); setMsg(null); }
+  catch(err){
+    const c=err.code||"";
+    setMsg(/invalid|wrong|user-not-found|credential/.test(c)?"errLogin":c.includes("network")?"errNet":c.includes("too-many")?"errMany":"errGen","err");
+  }
+};
+$("#bOut").onclick=()=>signOut(auth).catch(()=>setMsg("errGen","err"));
+
+let unsub=null, unsubS=null, unsubG=null, unsubC=null;
+onAuthStateChanged(auth,user=>{
+  $("#login").classList.toggle("hidden",!!user);
+  $("#panel").classList.toggle("hidden",!user);
+  if(unsub){ unsub(); unsub=null; }
+  if(unsubS){ unsubS(); unsubS=null; }
+  if(unsubG){ unsubG(); unsubG=null; }
+  if(unsubC){ unsubC(); unsubC=null; }
+  if(user){
+    // Lista en tiempo real con onSnapshot
+    unsub=onSnapshot(collection(db,"preguntas"),snap=>{
+      docs=snap.docs.map(d=>({id:d.id,...d.data()})); renderList();
+    },err=>setMsg(err.code==="permission-denied"?"errPerm":"errNet","err"));
+    unsubS=onSnapshot(collection(db,"stickers"),snap=>{
+      stks=snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>typeof s.data==="string").sort((a,b)=>(a.ts||0)-(b.ts||0)); renderStks();
+    },err=>setMsg(err.code==="permission-denied"?"errPerm":"errNet","err"));
+    unsubG=onSnapshot(collection(db,"generos"),snap=>{
+      gens=snap.docs.map(d=>({id:d.id,...d.data()})).filter(g=>typeof g.name==="string").sort((a,b)=>(a.ts||0)-(b.ts||0)); renderStks();
+    },err=>setMsg(err.code==="permission-denied"?"errPerm":"errNet","err"));
+    unsubC=onSnapshot(collection(db,"personajes"),snap=>{
+      chars=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>typeof c.data==="string").sort((a,b)=>(a.ts||0)-(b.ts||0)); renderChars();
+    },err=>setMsg(err.code==="permission-denied"?"errPerm":"errNet","err"));
+  } else { chars=[]; renderChars(); docs=[]; stks=[]; gens=[]; selGen=null; sec=null; tab="juegos"; nav(); renderList(); renderStks(); }
+});
+
+/* ===== Traducción automática (MyMemory, gratis y sin clave) ===== */
+const edited={en:false,ar:false}; // true si la persona escribió/cambió ese campo a mano
+let trTimer=null;
+async function tr(text,to){
+  if(text.length>450) throw new Error("largo");
+  const r=await fetch("https://api.mymemory.translated.net/get?q="+encodeURIComponent(text)+"&langpair=es|"+to);
+  const j=await r.json();
+  const out=j&&j.responseData&&j.responseData.translatedText;
+  if(!out||Number(j.responseStatus)!==200) throw new Error("tr");
+  const d=document.createElement("textarea"); d.innerHTML=out; return d.value; // decodifica &#39; etc.
+}
+/* Rellena inglés y árabe; con force=true también pisa lo editado a mano */
+async function autoTranslate(force){
+  const es=$("#qEs").value.trim(); if(!es) return false;
+  const todo=[["en","#qEn"],["ar","#qAr"]].filter(([l])=>force||!edited[l]);
+  if(!todo.length) return true;
+  setMsg("translating");
+  try{
+    const res=await Promise.all(todo.map(([l])=>tr(es,l)));
+    todo.forEach(([l,sel],i)=>{ $(sel).value=res[i]; edited[l]=false; });
+    setMsg("translated","good"); return true;
+  }catch(e){ console.warn(e); setMsg("transFail","err"); return false; }
+}
+$("#qEn").addEventListener("input",()=>edited.en=true);
+$("#qAr").addEventListener("input",()=>edited.ar=true);
+// al dejar de escribir en español, traduce solo
+$("#qEs").addEventListener("input",()=>{ clearTimeout(trTimer); trTimer=setTimeout(()=>autoTranslate(false),1000); });
+$("#bTr").onclick=()=>autoTranslate(true);
+
+/* ===== Agregar y borrar ===== */
+$("#bAdd").onclick=async()=>{
+  clearTimeout(trTimer);
+  if(!$("#qEs").value.trim()){ setMsg("needEs","err"); return; }
+  let ok=true;
+  if(!$("#qEn").value.trim()||!$("#qAr").value.trim()){ edited.en=edited.en&&!!$("#qEn").value.trim(); edited.ar=edited.ar&&!!$("#qAr").value.trim(); ok=await autoTranslate(false); }
+  const es=$("#qEs").value.trim(), en=$("#qEn").value.trim(), ar=$("#qAr").value.trim();
+  try{
+    await addDoc(collection(db,"preguntas"),{tipo:$("#qTipo").value,es,en,ar});
+    ["#qEs","#qEn","#qAr"].forEach(s=>$(s).value=""); edited.en=edited.ar=false;
+    setMsg(ok||(en&&ar)?"added":"addedNoTr",ok||(en&&ar)?"good":"err");
+  }catch(err){ setMsg(err.code==="permission-denied"?"errPerm":"errGen","err"); }
+};
+async function borrar(id){
+  try{ await deleteDoc(doc(db,"preguntas",id)); setMsg("deleted","good"); }
+  catch(err){ setMsg(err.code==="permission-denied"?"errPerm":"errGen","err"); }
+}
+
+/* ===== Lista separada por tipo ===== */
+function renderList(){
+  [["verdad","#lV"],["reto","#lR"]].forEach(([tipo,sel])=>{
+    const box=$(sel); box.innerHTML="";
+    const items=docs.filter(d=>d.tipo===tipo);
+    if(!items.length){ const e=document.createElement("div"); e.className="msg"; e.textContent=t("empty"); box.appendChild(e); return; }
+    items.forEach(d=>{
+      const row=document.createElement("div"); row.className="item";
+      const tx=document.createElement("span"); tx.className="tx"; tx.textContent=d.es||"";
+      const fl=document.createElement("span"); fl.className="flags";
+      [["ES",d.es],["EN",d.en],["AR",d.ar]].forEach(([n,v])=>{ if(v){ const i=document.createElement("i"); i.textContent=n; fl.appendChild(i); } });
+      tx.appendChild(fl);
+      const b=document.createElement("button"); b.className="btn del"; b.textContent=t("del"); b.onclick=()=>borrar(d.id);
+      row.append(tx,b); box.appendChild(row);
+    });
+  });
+}
+/* ===== Stickers (PNG/JPG) compartidos por todas las salas: colección "stickers" ===== */
+let stks=[], stkData=null;
+function readStk(file){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file), im=new Image();
+    im.onload=()=>{
+      URL.revokeObjectURL(url);
+      const png=file.type==="image/png"; let max=256;
+      const mk=m=>{ const k=Math.min(1,m/Math.max(im.width,im.height)), c=document.createElement("canvas");
+        c.width=Math.max(1,Math.round(im.width*k)); c.height=Math.max(1,Math.round(im.height*k));
+        const x=c.getContext("2d"); if(!png){ x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height); } /* el PNG conserva la transparencia */
+        x.drawImage(im,0,0,c.width,c.height); return png?c.toDataURL("image/png"):c.toDataURL("image/jpeg",.88); };
+      let d=mk(max); while(d.length>600000&&max>64){ max=Math.round(max*.75); d=mk(max); }
+      d.length>800000?rej(new Error("big")):res(d);
+    };
+    im.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error("img")); };
+    im.src=url;
+  });
+}
+$("#stkFile").addEventListener("change",async e=>{
+  const f=e.target.files[0]; stkData=null; $("#stkPrev").classList.add("hidden"); if(!f) return;
+  if(f.type!=="image/png"&&f.type!=="image/jpeg"){ e.target.value=""; setMsg("stkType","err"); return; }
+  try{ stkData=await readStk(f); $("#stkPrev").src=stkData; $("#stkPrev").classList.remove("hidden"); setMsg(null); }
+  catch(err){ e.target.value=""; setMsg(err.message==="big"?"stkBig":"errGen","err"); }
+});
+$("#bAddStk").onclick=async()=>{
+  if(!selGen||selGen==="sin"){ setMsg("genPick","err"); return; }
+  if(!stkData){ setMsg("stkNeed","err"); return; }
+  try{
+    await addDoc(collection(db,"stickers"),{name:$("#stkName").value.trim().slice(0,20),data:stkData,gen:selGen,ts:Date.now()});
+    stkData=null; $("#stkFile").value=""; $("#stkName").value=""; $("#stkPrev").classList.add("hidden"); setMsg("stkAdded","good");
+  }catch(err){ setMsg(err.code==="permission-denied"?"errPerm":"errGen","err"); }
+};
+async function borrarStk(id){
+  try{ await deleteDoc(doc(db,"stickers",id)); setMsg("stkDeleted","good"); }
+  catch(err){ setMsg(err.code==="permission-denied"?"errPerm":"errGen","err"); }
+}
+let gens=[], selGen=null;
+const genStks=id=>stks.filter(s=>id==="sin"?!gens.some(g=>g.id===s.gen):s.gen===id);
+function emptyMsg(key){ const e=document.createElement("div"); e.className="msg"; e.style.gridColumn="1/-1"; e.textContent=t(key); return e; }
+function renderStks(){
+  const list=gens.slice(); if(genStks("sin").length) list.push({id:"sin",name:t("noGen")});
+  if(selGen&&!list.some(g=>g.id===selGen)) selGen=null;
+  const grid=$("#gGrid"); grid.textContent="";
+  if(!list.length) grid.appendChild(emptyMsg("genEmpty"));
+  list.forEach(g=>{
+    const b=document.createElement("button"); b.className="tile sm"; b.setAttribute("aria-pressed",g.id===selGen);
+    const n=document.createElement("span"); n.textContent=g.name; const c=document.createElement("small"); c.textContent=genStks(g.id).length;
+    b.append(n,c); b.onclick=()=>{ selGen=g.id; renderStks(); }; grid.appendChild(b);
+  });
+  $("#genPanel").classList.toggle("hidden",!selGen);
+  if(!selGen) return;
+  $("#genHead").textContent=list.find(g=>g.id===selGen).name;
+  $("#upForm").classList.toggle("hidden",selGen==="sin"); $("#bDelGen").classList.toggle("hidden",selGen==="sin");
+  const box=$("#lS"); box.textContent=""; const items=genStks(selGen);
+  if(!items.length){ box.appendChild(emptyMsg("stkEmpty")); return; }
+  items.forEach(s=>{
+    const c=document.createElement("div"); c.className="stkcard";
+    const im=new Image(); im.src=s.data; im.alt=s.name||"";
+    const nm=document.createElement("span"); nm.textContent=s.name||"";
+    const b=document.createElement("button"); b.className="btn del"; b.textContent=t("del"); b.onclick=()=>borrarStk(s.id);
+    c.append(im,nm,b); box.appendChild(c);
+  });
+}
+$("#bAddGen").onclick=async()=>{
+  const n=$("#genName").value.trim().slice(0,24); if(!n){ setMsg("genNeed","err"); return; }
+  try{ const r=await addDoc(collection(db,"generos"),{name:n,ts:Date.now()}); $("#genName").value=""; selGen=r.id; renderStks(); setMsg("genAdded","good"); }
+  catch(err){ setMsg(err.code==="permission-denied"?"errPerm":"errGen","err"); }
+};
+$("#bDelGen").onclick=async()=>{
+  if(!selGen||selGen==="sin"||!confirm(t("genConfirm"))) return;
+  try{ for(const s of genStks(selGen)) await deleteDoc(doc(db,"stickers",s.id)); await deleteDoc(doc(db,"generos",selGen)); selGen=null; setMsg("genDeleted","good"); }
+  catch(err){ setMsg(err.code==="permission-denied"?"errPerm":"errGen","err"); }
+};
+
+/* ===== Personajes (PNG) para el perfil del juego: colección "personajes" ===== */
+let chars=[], chData=null;
+$("#chFile").addEventListener("change",async e=>{
+  const f=e.target.files[0]; chData=null; $("#chPrev").classList.add("hidden"); if(!f) return;
+  if(f.type!=="image/png"){ e.target.value=""; setMsg("charType","err"); return; }
+  try{ chData=await readStk(f); $("#chPrev").src=chData; $("#chPrev").classList.remove("hidden"); setMsg(null); }
+  catch(err){ e.target.value=""; setMsg(err.message==="big"?"stkBig":"errGen","err"); }
+});
+$("#bAddCh").onclick=async()=>{
+  if(!chData){ setMsg("charNeed","err"); return; }
+  try{
+    await addDoc(collection(db,"personajes"),{name:$("#chName").value.trim().slice(0,20),data:chData,ts:Date.now()});
+    chData=null; $("#chFile").value=""; $("#chName").value=""; $("#chPrev").classList.add("hidden"); setMsg("charAdded","good");
+  }catch(err){ setMsg(err.code==="permission-denied"?"errPerm":"errGen","err"); }
+};
+function renderChars(){
+  const box=$("#lC"); box.textContent="";
+  if(!chars.length){ box.appendChild(emptyMsg("charEmpty")); return; }
+  chars.forEach(c=>{
+    const k=document.createElement("div"); k.className="stkcard";
+    const im=new Image(); im.src=c.data; im.alt=c.name||"";
+    const nm=document.createElement("span"); nm.textContent=c.name||"";
+    const b=document.createElement("button"); b.className="btn del"; b.textContent=t("del");
+    b.onclick=async()=>{ try{ await deleteDoc(doc(db,"personajes",c.id)); setMsg("charDeleted","good"); }catch(err){ setMsg(err.code==="permission-denied"?"errPerm":"errGen","err"); } };
+    k.append(im,nm,b); box.appendChild(k);
+  });
+}
+nav(); applyLang();
+</script>
+</body>
+</html>
