@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini Juegos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Kufi+Arabic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#4d2c5e;--rosa:#ffb7d0;--amarillo:#fff4b8;--lila:#d9c2f0;--celeste:#c7e3ff}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:#ffd5d9;color:var(--ink);font-family:'Press Start 2P',monospace;font-size:12px;line-height:1.8;overflow-x:hidden}
+html[lang="ar"] body{font-family:'Noto Kufi Arabic',sans-serif;font-size:16px;line-height:2;font-weight:500}
+#scene{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;z-index:0}
+.langs{position:fixed;top:8px;inset-inline-end:8px;z-index:5;display:flex;gap:6px}
+.langs button{font:inherit;font-size:10px;color:var(--ink);background:#fff;border:3px solid var(--ink);padding:8px 10px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;min-width:44px;min-height:40px}
+html[lang="ar"] .langs button{font-family:'Noto Kufi Arabic',sans-serif}
+.langs button[aria-pressed="true"]{background:var(--amarillo)}
+.langs button:active{transform:translate(3px,3px);box-shadow:none}
+main{position:relative;z-index:2;min-height:100vh;max-width:520px;margin:0 auto;padding:72px 16px 40px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:20px}
+.title{font-size:clamp(26px,9vw,46px);line-height:1.35;text-align:center;margin:16px 0 0;color:#fff;
+ text-shadow:-3px 0 var(--ink),3px 0 var(--ink),0 -3px var(--ink),0 3px var(--ink),3px 3px 0 var(--ink),-3px -3px 0 var(--ink),-3px 3px 0 var(--ink),3px -3px 0 var(--ink),6px 6px 0 var(--rosa)}
+html[lang="ar"] .title{font-size:clamp(34px,11vw,60px);line-height:1.5}
+.title i{display:inline-block;width:.8em;height:.8em;margin:0 .3em;vertical-align:middle;background:var(--fl) center/contain no-repeat;image-rendering:pixelated}
+.sub{text-align:center;font-size:10px;background:rgba(255,255,255,.9);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:8px 12px;align-self:center}
+html[lang="ar"] .sub{font-size:14px}
+nav{display:flex;flex-direction:column;gap:18px;margin-top:8px}
+.game{--c:var(--rosa);position:relative;display:flex;align-items:center;justify-content:center;gap:12px;text-decoration:none;color:var(--ink);font-size:15px;min-height:76px;padding:18px 20px;margin:4px;text-shadow:1px 1px 0 rgba(255,255,255,.75);
+ background:linear-gradient(180deg,color-mix(in srgb,var(--c) 45%,#fff) 0,var(--c) 55%,color-mix(in srgb,var(--c) 80%,#e0669b) 100%);
+ box-shadow:0 -4px 0 0 var(--ink),0 4px 0 0 var(--ink),-4px 0 0 0 var(--ink),4px 0 0 0 var(--ink),inset 0 4px 0 0 rgba(255,255,255,.7),inset 4px 0 0 0 rgba(255,255,255,.4),inset 0 -6px 0 0 rgba(214,90,143,.28);
+ filter:drop-shadow(5px 6px 0 rgba(77,44,94,.3));transition:filter .1s}
+.game i{width:24px;height:24px;background:var(--fl) center/contain no-repeat;image-rendering:pixelated;flex:none}
+.game:hover{filter:brightness(1.07) drop-shadow(5px 6px 0 rgba(77,44,94,.3))}
+.game:active{transform:translate(3px,4px);filter:none}
+.game:focus-visible,.langs button:focus-visible{outline:3px dashed var(--ink);outline-offset:4px}
+html[lang="ar"] .game{font-weight:700;font-size:20px}
+.game::before,.game::after{content:"▶";font-size:12px;animation:nudge 1s steps(2) infinite}
+.game::after{content:"◀"}
+@keyframes nudge{50%{transform:translateX(3px)}}
+@media (prefers-reduced-motion:reduce){.game::before,.game::after{animation:none}}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="langs" role="group" aria-label="Language"><button data-l="es">ES</button><button data-l="en">EN</button><button data-l="ar">AR</button></div>
+<main>
+  <h1 class="title"><i></i><span id="ttl">Mini Juegos</span><i></i></h1>
+  <div class="sub" id="sub">Elige un juego</div>
+  <nav id="games">
+    <a class="game" href="verdad-o-reto.html" id="gVor"><i></i><span id="gVorT">Verdad o Reto</span></a>
+  </nav>
+</main>
+<script>
+const T={es:{t:"Mini Juegos",s:"Elige un juego",vor:"Verdad o Reto"},en:{t:"Mini Games",s:"Pick a game",vor:"Truth or Dare"},ar:{t:"ألعاب صغيرة",s:"اختر لعبة",vor:"حقيقة أم جرأة"}};
+const $=s=>document.querySelector(s);
+let lang="es";
+try{const sv=localStorage.getItem("vor-lang"),nv=(navigator.language||"es").slice(0,2).toLowerCase();lang=T[sv]?sv:(T[nv]?nv:"es");}catch(e){}
+function applyLang(){
+  const L=T[lang];
+  document.documentElement.lang=lang; document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  $("#ttl").textContent=L.t; $("#sub").textContent=L.s; $("#gVorT").textContent=L.vor; document.title=L.t;
+  document.querySelectorAll(".langs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===lang));
+}
+document.querySelectorAll(".langs button").forEach(b=>b.onclick=()=>{lang=b.dataset.l;try{localStorage.setItem("vor-lang",lang);}catch(e){}applyLang();});
+applyLang();
+
+/* Flor pixel (icono del título y del botón) */
+(function(){const F=[".xx...xx.","xwpx.xpwx","xpppppppx",".xpppppx.","..xpypx..",".xpppppx.","xpppppppx","xppx.xppx",".xx...xx."],K={x:"#d65a8f",p:"#ffb7d0",w:"#ffe9f1",y:"#ffd54a"};
+ const c=document.createElement("canvas");c.width=c.height=9;const g=c.getContext("2d");
+ F.forEach((r,y)=>[...r].forEach((ch,x)=>{if(K[ch]){g.fillStyle=K[ch];g.fillRect(x,y,1,1);}}));
+ document.documentElement.style.setProperty("--fl","url("+c.toDataURL()+")");})();
+
+/* ===== Escena anime pixel art: cielo rosado, sol, Fuji, torii, sakura y pétalos ===== */
+const cv=$("#scene"),g=cv.getContext("2d"),bg=document.createElement("canvas"),b=bg.getContext("2d");
+const REDUCED=matchMedia("(prefers-reduced-motion: reduce)").matches, PX=3;
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let W,H,petals=[],clouds=[];
+const SKY=["#c9b6f2","#dcbcf0","#efc2ec","#ffc8dd","#ffd5d9","#ffe4d6"],PINK=["#ffb7d0","#ff94b8","#ffd6e7","#ffe9f1"];
+function R(x,y,w,h,c){b.fillStyle=c;b.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}
+function build(){
+  W=Math.ceil(innerWidth/PX);H=Math.ceil(innerHeight/PX);cv.width=bg.width=W;cv.height=bg.height=H;
+  const r=rng(7), gy=Math.round(H*.8), band=gy/SKY.length;
+  for(let i=0;i<SKY.length;i++){R(0,i*band,W,band+1,SKY[i]); if(i)for(let x=0;x<W;x+=2)R(x+(0),i*band-1,1,1,SKY[i-1]);} /* tramado entre franjas */
+  R(0,gy,W,H-gy,"#ffc9db");
+  /* sol */
+  const sx=W*.76,sy=H*.2,sr=Math.max(9,Math.min(W,H)*.07);
+  for(let y=-sr*1.6;y<=sr*1.6;y++)for(let x=-sr*1.6;x<=sr*1.6;x++){const d=Math.hypot(x,y); if(d<=sr)R(sx+x,sy+y,1,1,"#fff4cf"); else if(d<=sr*1.6&&(x+y)%2===0)R(sx+x,sy+y,1,1,"#ffd9e6");}
+  /* montañas lejanas + Fuji */
+  const fx=W*.3,fh=H*.3,fw=fh*1.7;
+  for(let x=0;x<W;x++){const m=gy-(H*.09+Math.sin(x*.045)*H*.03+Math.sin(x*.11+2)*H*.012); R(x,m,1,gy-m,"#d9c4ee");}
+  for(let y=0;y<fh;y++){const hw=(y/fh)*fw/2, top=gy-fh+y; R(fx-hw,top,hw*2,1,y<fh*.22?"#fff":"#b7a3de"); if(y<fh*.3&&y>fh*.1&&y%2===0)R(fx-hw+ (y%4),top,2,1,"#e9dcf5");}
+  for(let x=0;x<W;x++){const m=gy-(H*.05+Math.sin(x*.07+1)*H*.02); R(x,m,1,gy-m,"#c4aee6");}
+  /* torii */
+  const tx=W*.5,tb=gy+2,th=Math.max(34,H*.18),tw=th*1.1;
+  R(tx-tw/2+3,tb-th,4,th,"#d9363e");R(tx+tw/2-7,tb-th,4,th,"#d9363e");
+  R(tx-tw/2+5,tb-th,2,th,"#8f1f2e");R(tx+tw/2-5,tb-th,2,th,"#8f1f2e");
+  R(tx-tw/2-5,tb-th-4,tw+10,4,"#8f1f2e");R(tx-tw/2-3,tb-th-8,tw+6,4,"#d9363e");R(tx-tw/2-7,tb-th-10,5,3,"#d9363e");R(tx+tw/2+2,tb-th-10,5,3,"#d9363e");
+  R(tx-tw/2+3,tb-th*.72,tw-6,3,"#d9363e");
+  /* colinas y suelo con flores */
+  for(let x=0;x<W;x++){const m=gy-Math.sin(x*.03)*3-2; R(x,m,1,4,"#ffe1ec");}
+  for(let i=0;i<W*H/260;i++){const x=r()*W,y=gy+4+r()*(H-gy-4);R(x,y,1,1,PINK[Math.floor(r()*4)]);}
+  /* árbol de sakura a la derecha */
+  const trx=W*.86,th2=H*.42;
+  R(trx-2,gy-th2,5,th2+4,"#7a4a63");R(trx-1,gy-th2,2,th2,"#9a6280");
+  R(trx-14,gy-th2*.75,14,2,"#7a4a63");R(trx+3,gy-th2*.6,13,2,"#7a4a63");
+  const cr=th2*.42;
+  for(let i=0;i<Math.max(900,cr*cr*.6);i++){const a=r()*6.283,d=Math.sqrt(r())*cr;R(trx+Math.cos(a)*d*1.25,gy-th2-cr*.3+Math.sin(a)*d*.8,2,2,PINK[Math.floor(r()*4)]);}
+  /* árbol pequeño a la izquierda */
+  const t2=W*.07,h2=H*.28;R(t2-1,gy-h2,3,h2+3,"#7a4a63");
+  for(let i=0;i<420;i++){const a=r()*6.283,d=Math.sqrt(r())*h2*.4;R(t2+Math.cos(a)*d*1.2,gy-h2-6+Math.sin(a)*d*.8,2,2,PINK[Math.floor(r()*4)]);}
+  clouds=[0,1,2,3].map(i=>({x:r()*W,y:H*(.07+i*.09+r()*.04),k:Math.max(1.5,H/110)*(.7+r()*.6),v:.02+r()*.04}));
+  const n=Math.max(30,Math.min(90,Math.round(W/9)));petals=[];for(let i=0;i<n;i++)petals.push(newPetal(true));
+  if(REDUCED)draw(0);
+}
+function newPetal(init){return{x:Math.random()*W,y:init?Math.random()*H:-4,vx:.1+Math.random()*.3,vy:.15+Math.random()*.3,c:PINK[Math.floor(Math.random()*4)],ph:Math.random()*6,s:Math.random()<.3?2:1};}
+function cloud(c){const k=c.k;g.fillStyle="#fff7fb";g.globalAlpha=.85;g.fillRect(Math.round(c.x),Math.round(c.y+3*k),Math.round(14*k),Math.round(k*1.4));g.fillRect(Math.round(c.x+2*k),Math.round(c.y+1.5*k),Math.round(8*k),Math.round(k*1.6));g.fillRect(Math.round(c.x+4*k),Math.round(c.y),Math.round(4*k),Math.round(k*1.5));g.globalAlpha=1;}
+function draw(t){
+  g.drawImage(bg,0,0);
+  clouds.forEach(c=>{if(!REDUCED){c.x+=c.v;if(c.x>W+20*c.k)c.x=-20*c.k;}cloud(c);});
+  petals.forEach(p=>{if(!REDUCED){p.ph+=.04;p.x+=p.vx+Math.sin(p.ph)*.25;p.y+=p.vy;if(p.y>H||p.x>W+4){Object.assign(p,newPetal(false));}}g.fillStyle=p.c;g.fillRect(Math.round(p.x),Math.round(p.y),p.s+1,p.s);});
+}
+function frame(t){draw(t);requestAnimationFrame(frame);}
+let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(build,200);});
+build();if(!REDUCED)requestAnimationFrame(frame);
+</script>
+</body>
+</html>
